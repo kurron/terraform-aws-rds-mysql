@@ -1,5 +1,5 @@
 terraform {
-    required_version = ">= 0.10.7"
+    required_version = ">= 0.11.1"
     backend "s3" {}
 }
 
@@ -7,137 +7,62 @@ provider "aws" {
     region     = "${var.region}"
 }
 
-data "aws_ami" "lookup" {
-    most_recent = true
-    name_regex  = "${var.ami_regexp}"
-    owners      = ["amazon"]
-    filter {
-       name   = "architecture"
-       values = ["x86_64"]
-    }
-    filter {
-       name   = "image-type"
-       values = ["machine"]
-    }
-    filter {
-       name   = "state"
-       values = ["available"]
-    }
-    filter {
-       name   = "virtualization-type"
-       values = ["hvm"]
-    }
-    filter {
-       name   = "hypervisor"
-       values = ["xen"]
-    }
-    filter {
-       name   = "root-device-type"
-       values = ["ebs"]
-    }
-}
+resource "aws_db_instance" "mysql" {
+    allocated_storage                   = "${var.storage_size}"
+    allow_major_version_upgrade         = "${var.allow_major_version_upgrade}"
+    apply_immediately                   = "${var.apply_immediately}"
+    auto_minor_version_upgrade          = "${var.auto_minor_version_upgrade}"
+    availability_zone                   = "${var.availability_zone}"
+    backup_retention_period             = "${var.backup_retention_period}"
+    backup_window                       = "${var.backup_window}"
+    copy_tags_to_snapshot               = true
+    db_subnet_group_name                = "${var.db_subnet_group_name}"
+    engine                              = "mysql"
+    engine_version                      = "${var.engine_version}"
+    final_snapshot_identifier           = "${var.final_snapshot_identifier}"
+    iam_database_authentication_enabled = "${var.iam_database_authentication_enabled}"
+    identifier                          = "${var.name}"
+    instance_class                      = "${var.instance_class}"
+    license_model                       = "general-public-license"
+    maintenance_window                  = "${var.maintenance_window}"
+    monitoring_interval                 = "${var.monitoring_interval}"
+    monitoring_role_arn                 = "${var.monitoring_role_arn}"
+    multi_az                            = "${var.multi_az}"
+    option_group_name                   = "${var.option_group_name}"
+    parameter_group_name                = "${var.parameter_group_name}"
+    password                            = "${var.password}"
+    publicly_accessible                 = "${var.publicly_accessible}"
+    skip_final_snapshot                 = "${var.skip_final_snapshot}"
+    storage_encrypted                   = false
+    storage_type                        = "${var.storage_type}"
+    username                            = "${var.username}"
+    vpc_security_group_ids = "foo"
 
-resource "aws_ecs_cluster" "main" {
-    name = "${var.name}"
-
-    lifecycle {
-        create_before_destroy = true
-    }
-}
-
-data "template_file" "ecs_cloud_config" {
-    template = "${file("${path.module}/files/cloud-config.yml.template")}"
-    vars {
-        cluster_name = "${aws_ecs_cluster.main.name}"
-    }
-}
-
-data "template_cloudinit_config" "cloud_config" {
-    gzip          = false
-    base64_encode = false
-    part {
-        content_type = "text/cloud-config"
-        content      = "${data.template_file.ecs_cloud_config.rendered}"
-    }
-}
-
-resource "aws_launch_configuration" "worker_spot" {
-    name_prefix          = "${var.name}-"
-    image_id             = "${data.aws_ami.lookup.id}"
-    instance_type        = "${var.instance_type}"
-    iam_instance_profile = "${var.instance_profile}"
-    key_name             = "${var.ssh_key_name}"
-    security_groups      = ["${var.security_group_ids}"]
-    user_data            = "${data.template_cloudinit_config.cloud_config.rendered}"
-    enable_monitoring    = true
-    ebs_optimized        = "${var.ebs_optimized}"
-    spot_price           = "${var.spot_price}"
-    lifecycle {
-        create_before_destroy = true
-    }
-}
-
-resource "aws_autoscaling_group" "worker_spot" {
-    name_prefix               = "${var.name}"
-    max_size                  = "${var.cluster_max_size}"
-    min_size                  = "${var.cluster_min_size}"
-    default_cooldown          = "${var.cooldown}"
-    launch_configuration      = "${aws_launch_configuration.worker_spot.name}"
-    health_check_grace_period = "${var.health_check_grace_period}"
-    health_check_type         = "EC2"
-    desired_capacity          = "${var.cluster_desired_size}"
-    vpc_zone_identifier       = ["${var.subnet_ids}"]
-    termination_policies      = ["ClosestToNextInstanceHour", "OldestInstance", "Default"]
-    enabled_metrics           = ["GroupMinSize", "GroupMaxSize", "GroupDesiredCapacity", "GroupInServiceInstances", "GroupPendingInstances", "GroupStandbyInstances", "GroupTerminatingInstances", "GroupTotalInstances"]
     lifecycle {
         create_before_destroy = true
     }
     tag {
         key                 = "Name"
-        value               = "ECS Worker (spot)"
-        propagate_at_launch = true
+        value               = "${var.name}"
     }
     tag {
         key                 = "Project"
         value               = "${var.project}"
-        propagate_at_launch = true
     }
     tag {
         key                 = "Purpose"
-        value               = "ECS Worker (spot)"
-        propagate_at_launch = true
+        value               = "${var.project}"
     }
     tag {
         key                 = "Creator"
         value               = "${var.creator}"
-        propagate_at_launch = true
     }
     tag {
         key                 = "Environment"
         value               = "${var.environment}"
-        propagate_at_launch = true
     }
     tag {
         key                 = "Freetext"
         value               = "${var.freetext}"
-        propagate_at_launch = true
     }
-}
-
-resource "aws_autoscaling_schedule" "spot_scale_up" {
-    autoscaling_group_name = "${aws_autoscaling_group.worker_spot.name}"
-    scheduled_action_name  = "ECS Worker Scale Up (spot)"
-    recurrence             = "${var.scale_up_cron}"
-    min_size               = "${var.cluster_min_size}"
-    max_size               = "${var.cluster_max_size}"
-    desired_capacity       = "${var.cluster_desired_size}"
-}
-
-resource "aws_autoscaling_schedule" "spot_scale_down" {
-    autoscaling_group_name = "${aws_autoscaling_group.worker_spot.name}"
-    scheduled_action_name  = "ECS Worker Scale Down (spot)"
-    recurrence             = "${var.scale_down_cron}"
-    min_size               = "${var.cluster_scaled_down_min_size}"
-    max_size               = "${var.cluster_scaled_down_max_size}"
-    desired_capacity       = "${var.cluster_scaled_down_desired_size}"
 }

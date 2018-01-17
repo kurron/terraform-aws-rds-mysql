@@ -33,93 +33,144 @@ variable "freetext" {
     description = "Information that does not fit in the other tags"
 }
 
-variable "instance_type" {
-    type = "string"
-    description = "They instance type to build the instances from"
+variable "storage_size" {
+    type = "number"
+    description = "How large, in GBs, to allocate for storage."
+    default = 20
 }
 
-variable "instance_profile" {
+variable "allow_major_version_upgrade" {
     type = "string"
-    description = "ID of the IAM profile to associate with the instances"
+    description = "If true, permits Amazon to automatically upgrade the instance to next major version."
+    default = "true"
 }
 
-variable "ssh_key_name" {
+variable "apply_immediately" {
     type = "string"
-    description = "Name of the SSH key to install onto the instances"
+    description = "If true, engine upgrades are done immediately, otherwise done during the next maintenance window."
+    default = "false"
 }
+
+variable "auto_minor_version_upgrade" {
+    type = "string"
+    description = "If true, permits Amazon to automatically upgrade the instance to next minor version."
+    default = "true"
+}
+
+variable "availability_zone" {
+    type = "string"
+    description = "The availability zone to place the instance into."
+    default = ""
+}
+
+variable "backup_retention_period" {
+    type = "number"
+    description = "How many days to retain backups."
+    default = 7
+}
+
+variable "backup_window" {
+    type = "string"
+    description = "The daily time range (in UTC) during which automated backups are created, if enabled."
+    default = "00:00-02:00"
+}
+
+variable "db_subnet_group_name" {
+    type = "string"
+    description = "Name of the DB subnet group specifying which subnets to place the instance in, eg. my-db-subnet-group"
+}
+
+variable "engine_version" {
+    type = "string"
+    description = "The version of MySQL to use, e.g. 5.6.17.  If left blank, the latest engine is used."
+    default = ""
+}
+
+variable "final_snapshot_identifier" {
+    type = "string"
+    description = "What to name the final snapshot when the instance is deleted.  If left blank, no snapshot is taken."
+    default = ""
+}
+
+variable "iam_database_authentication_enabled" {
+    type = "string"
+    description = "If true, mappings of AWS Identity and Access Management (IAM) accounts to database accounts is enabled."
+    default = "false"
+}
+
+variable "instance_class" {
+    type = "string"
+    description = "The instance type of the RDS instance, e.g. db.t2.micro"
+    default = "db.t2.micro"
+}
+
+variable "maintenance_window" {
+    type = "string"
+    description = "The window to perform maintenance in."
+    default = "Sun:03:00-Sun:05:00"
+}
+
+variable "monitoring_interval" {
+    type = "number"
+    description = "The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB instance. Valid Values: 0, 1, 5, 10, 15, 30, 60."
+    default = 0
+}
+
+variable "monitoring_role_arn" {
+    type = "string"
+    description = "The ARN for the IAM role that permits RDS to send enhanced monitoring metrics to CloudWatch Logs, if enabled."
+    default = ""
+}
+
+variable "multi_az" {
+    type = "string"
+    description = "If true, the instance operates in multiple availability zones."
+    default = "false"
+}
+
+variable "option_group_name" {
+    type = "string"
+    description = "Name of the DB option group to associate to the instance, e.g. default.mysql56"
+    default = ""
+}
+
+variable "parameter_group_name" {
+    type = "string"
+    description = "Name of the DB parameter group to associate to the instance, e.g. default:mysql-5-6"
+    default = ""
+}
+
+variable "password" {
+    type = "string"
+    description = "Password for the master DB user.  Must be at least 8 characters, e.g. mypassword"
+}
+
+variable "publicly_accessible" {
+    type = "string"
+    description = "If true, the database can be connected via the internet."
+    default = "false"
+}
+
+variable "skip_final_snapshot" {
+    type = "string"
+    description = "If true, no database snapshot is created before the instance is deleted."
+    default = "false"
+}
+
+variable "storage_type" {
+    type = "string"
+    description = "Type of storage medium to use. Maybe one of standard, gp2, io1"
+    default = "gp2"
+}
+
+variable "username" {
+    type = "string"
+    description = "Username for the master DB user."
+    default = "master"
+}
+
 
 variable "security_group_ids" {
     type = "list"
     description = "List of security groups to apply to the instances"
-}
-
-variable "ebs_optimized" {
-    type = "string"
-    description = "Boolean indicating if the instance should enable EBS optimization or not"
-}
-
-variable "spot_price" {
-    type = "string"
-    description = "How much, per hour, you are willing to pay for the instances, e.g. 0.015"
-    default = "0"
-}
-
-variable "cluster_min_size" {
-    type = "string"
-    description = "Minimum number of instances to maintain in the cluster, e.g. 2"
-}
-
-variable "cluster_max_size" {
-    type = "string"
-    description = "Maximum number of instances to maintain in the cluster, e.g. 8"
-}
-
-variable "cluster_desired_size" {
-    type = "string"
-    description = "Desired number of instances to maintain in the cluster, e.g. 4"
-}
-
-variable "cooldown" {
-    type = "string"
-    description = "The amount of time, in seconds, after a scaling activity completes before another scaling activity can start, e.g. 30"
-}
-
-variable "health_check_grace_period" {
-    type = "string"
-    description = "Time (in seconds) after instance comes into service before checking health, e.g. 300"
-}
-
-variable "subnet_ids" {
-    type = "list"
-    description = "List of subnets to create the instances in, e.g. [subnet-4a33b402,subnet-ac5f72f7]"
-}
-
-variable "scale_up_cron" {
-    type = "string"
-    description = "Cron expression detailing when to increase cluster capacity, e.g. 0 7 * * MON-FRI"
-}
-
-variable "scale_down_cron" {
-    type = "string"
-    description = "Cron expression detailing when to decrease cluster capacity, e.g. 0 0 * * SUN-SAT"
-}
-
-variable "cluster_scaled_down_desired_size" {
-    type = "string"
-    description = "Minimum number of instances to maintain in the cluster when scaled down, e.g. 2"
-}
-
-variable "cluster_scaled_down_min_size" {
-    type = "string"
-    description = "Desired number of instances to maintain in the cluster when scaled down, e.g. 4"
-}
-
-variable "cluster_scaled_down_max_size" {
-    type = "string"
-    description = "Maximum number of instances to maintain in the cluster when scaled down, e.g. 8"
-}
-
-variable "ami_regexp" {
-    type = "string"
-    description = "Regular expression to use when looking up an AMI in the specified region"
 }
