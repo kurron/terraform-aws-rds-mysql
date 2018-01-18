@@ -16,6 +16,8 @@ module "rds" {
     password                         = "mypassword"
     publicly_accessible              = "true"
     multi_az                         = "true"
+    domain_name                      = "transparent.engineering"
+    host_name                        = "debug-mysql"
     subnet_ids                       = ["subnet-568ee830","subnet-4a33b402","subnet-ac5f72f7"]
     vpc_security_group_ids           = ["sg-566f7a2a"]
 }
@@ -46,4 +48,8 @@ output "resource_id" {
 
 output "username" {
     value = "${module.rds.username}"
+}
+
+output "fqdn" {
+    value = "${module.rds.fqdn}"
 }

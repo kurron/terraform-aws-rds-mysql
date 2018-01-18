@@ -7,6 +7,11 @@ provider "aws" {
     region     = "${var.region}"
 }
 
+provider "aws" {
+    alias = "east"
+    region = "us-east-1"
+}
+
 resource "aws_db_subnet_group" "mysql" {
     name        = "${lower( var.name )}"
     description = "Subnets the RDS instances can be place into."
@@ -64,4 +69,18 @@ resource "aws_db_instance" "mysql" {
     lifecycle {
         create_before_destroy = true
     }
+}
+
+data "aws_route53_zone" "selected" {
+    provider     = "aws.east"
+    name         = "${var.domain_name}."
+    private_zone = false
+}
+
+resource "aws_route53_record" "mysql" {
+    zone_id = "${data.aws_route53_zone.selected.zone_id}"
+    name    = "${var.host_name}.${var.domain_name}"
+    type    = "CNAME"
+    ttl     = "300"
+    records = ["${aws_db_instance.mysql.address}"]
 }

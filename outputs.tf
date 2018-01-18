@@ -30,5 +30,10 @@ output "resource_id" {
 
 output "username" {
     value = "${aws_db_instance.mysql.username}"
-    description = " The master username for the database."
+    description = "The master username for the database."
+}
+
+output "fqdn" {
+    value = "${aws_route53_record.mysql.fqdn}"
+    description = "Primary DNS name based on the custom domain name."
 }
