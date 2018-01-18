@@ -34,9 +34,9 @@ variable "freetext" {
 }
 
 variable "storage_size" {
-    type = "number"
+    type = "string"
     description = "How large, in GBs, to allocate for storage."
-    default = 20
+    default = "20"
 }
 
 variable "allow_major_version_upgrade" {
@@ -64,9 +64,9 @@ variable "availability_zone" {
 }
 
 variable "backup_retention_period" {
-    type = "number"
+    type = "string"
     description = "How many days to retain backups."
-    default = 7
+    default = "7"
 }
 
 variable "backup_window" {
@@ -75,9 +75,9 @@ variable "backup_window" {
     default = "00:00-02:00"
 }
 
-variable "db_subnet_group_name" {
-    type = "string"
-    description = "Name of the DB subnet group specifying which subnets to place the instance in, eg. my-db-subnet-group"
+variable "subnet_ids" {
+    type = "list"
+    description = "List of subnets ids where the instance can live, eg. [subnet-6412a148,subnet-e18b0185]"
 }
 
 variable "engine_version" {
@@ -89,7 +89,7 @@ variable "engine_version" {
 variable "final_snapshot_identifier" {
     type = "string"
     description = "What to name the final snapshot when the instance is deleted.  If left blank, no snapshot is taken."
-    default = ""
+    default = "final-snapshot"
 }
 
 variable "iam_database_authentication_enabled" {
@@ -111,9 +111,9 @@ variable "maintenance_window" {
 }
 
 variable "monitoring_interval" {
-    type = "number"
+    type = "string"
     description = "The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB instance. Valid Values: 0, 1, 5, 10, 15, 30, 60."
-    default = 0
+    default = "0"
 }
 
 variable "monitoring_role_arn" {
@@ -169,8 +169,7 @@ variable "username" {
     default = "master"
 }
 
-
-variable "security_group_ids" {
+variable "vpc_security_group_ids" {
     type = "list"
-    description = "List of security groups to apply to the instances"
+    description = "List of VPC security groups to associate to the instance."
 }
