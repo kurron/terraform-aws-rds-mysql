@@ -1,5 +1,5 @@
 terraform {
-    required_version = ">= 0.11.1"
+    required_version = ">= 0.11.2"
     backend "s3" {}
 }
 
@@ -15,7 +15,7 @@ provider "aws" {
 resource "aws_db_subnet_group" "mysql" {
     name        = "${lower( var.name )}"
     description = "Subnets the RDS instances can be place into."
-    subnet_ids  = "${var.subnet_ids}"
+    subnet_ids  = ["${var.subnet_ids}"]
     tags {
         Name        = "${var.name}"
         Project     = "${var.project}"
@@ -55,7 +55,7 @@ resource "aws_db_instance" "mysql" {
     storage_encrypted                   = false
     storage_type                        = "${var.storage_type}"
     username                            = "${var.username}"
-    vpc_security_group_ids              = "${var.vpc_security_group_ids}"
+    vpc_security_group_ids              = ["${var.vpc_security_group_ids}"]
 
     tags {
         Name        = "${var.name}"
