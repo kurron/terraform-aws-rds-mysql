@@ -64,6 +64,7 @@ resource "aws_db_instance" "mysql" {
         Creator     = "${var.creator}"
         Environment = "${var.environment}"
         Freetext    = "${var.freetext}"
+        Scheduled   = "${var.scheduled}"
     }
 
     lifecycle {

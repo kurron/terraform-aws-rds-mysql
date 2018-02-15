@@ -183,3 +183,9 @@ variable "host_name" {
     type = "string"
     description = "The host name to use when creating the mapping to your managed domain name, e.g. development-mysql."
 }
+
+variable "scheduled" {
+    type = "string"
+    description = "If set to Yes, the instances can be parked on a schedule"
+    default = "No"
+}
